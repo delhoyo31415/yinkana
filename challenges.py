@@ -9,8 +9,7 @@ def first(identifier: str) -> str:
         print(sock.recv(utils.MAX_BYTES).decode())
         sock.sendall(identifier.encode())
 
-        data = utils.read_until_finish(sock)
-        print(data)
+        data = utils.read_until(sock)
         return utils.get_identifier_from_data(data)
 
 
@@ -26,4 +25,18 @@ def second(identifier: str) -> str:
         print(data)
         return utils.get_identifier_from_data(data)
 
-all_challenges = [first, second]
+def third(identifier: str) -> str:
+    end_delimiter = "that's the end"
+
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.connect((utils.HOST, 3002))
+        large_text = utils.read_until(sock, end_delimiter)
+        words = len(large_text[:large_text.index(end_delimiter)].split())
+
+        sock.sendall(f"{identifier} {words}".encode())
+        remaining_data = utils.read_until(sock)
+
+        print(remaining_data)
+        return utils.get_identifier_from_data(remaining_data)
+
+all_challenges = [first, second, third]
