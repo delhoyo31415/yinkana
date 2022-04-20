@@ -1,11 +1,28 @@
 import socket
 import random
+from typing import Optional
 
 HOST = "rick"
 MAX_BYTES = 4096
 
 ID_PREFIX = "identifier"
 MIN_DYNAMIC_PORT, MAX_DYNAMIC_PORT = 49152, 65535
+
+def decrypt_cesar_word(word: str, key: int) -> str:
+    decoded_word = ""
+    for char in word:
+        offset = ord("A") if char.isupper() else ord("a")
+        new_ascii = (ord(char) - offset + key) % 26 + offset
+        decoded_word += chr(new_ascii)
+
+    return decoded_word
+
+def first_digit_index(data: str) -> Optional[int]:
+    for i, c in enumerate(data):
+        if c.isnumeric():
+            return i
+
+    return None
 
 def get_identifier_from_data(data: str) -> str:
     """ Returns the identifier. If ID_PREFIX is not in data then an exception is raised """

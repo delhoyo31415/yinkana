@@ -1,4 +1,5 @@
 import socket
+from typing import Optional
 
 import utils
 
@@ -39,4 +40,26 @@ def third(identifier: str) -> str:
         print(remaining_data)
         return utils.get_identifier_from_data(remaining_data)
 
-all_challenges = [first, second, third]
+def fourth(identifier: str) -> str:
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.connect((utils.HOST, 6501))
+
+        all_data = ""
+        index: Optional[int] = None
+
+        while index is None:
+            data = sock.recv(utils.MAX_BYTES)
+            all_data += data.decode()
+            index = utils.first_digit_index(all_data)
+
+        key = int(all_data[index])
+        decoded_msg = " ".join([utils.decrypt_cesar_word(word, key) for word in all_data[:index].split()[-key:]])
+
+        sock.sendall(f"{identifier} {decoded_msg} --".encode())
+
+        remaining_data = utils.read_until(sock)
+
+        print(remaining_data)
+        return utils.get_identifier_from_data(remaining_data)
+
+all_challenges = [first, second, third, fourth]
