@@ -1,4 +1,5 @@
 import socket
+import hashlib
 from typing import Optional
 
 import utils
@@ -62,4 +63,26 @@ def fourth(identifier: str) -> str:
         print(remaining_data)
         return utils.get_identifier_from_data(remaining_data)
 
-all_challenges = [first, second, third, fourth]
+def fifth(identifier: str) -> str:
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.connect((utils.HOST, 9003))
+        sock.sendall(identifier.encode())
+
+        # TODO: make this more robust
+        first_part = sock.recv(utils.MAX_BYTES)
+        colon_index = first_part.index(b":")
+        remaining_data = int(first_part[:colon_index].decode()) - (len(first_part) - colon_index - 1)
+        sha1 = hashlib.sha1(first_part[colon_index + 1:])
+
+        while remaining_data != 0:
+            data = sock.recv(min(utils.MAX_BYTES, remaining_data))
+            sha1.update(data)
+            remaining_data -= len(data)
+
+        sock.sendall(sha1.digest())
+        last_data = utils.read_until(sock)
+
+        print(last_data)
+        return utils.get_identifier_from_data(last_data)
+
+all_challenges = [first, second, third, fourth, fifth]
