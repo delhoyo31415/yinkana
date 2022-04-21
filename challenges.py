@@ -3,6 +3,7 @@ import hashlib
 from typing import Optional
 
 import utils
+import yap
 
 
 def first(identifier: str) -> str:
@@ -85,4 +86,14 @@ def fifth(identifier: str) -> str:
         print(last_data)
         return utils.get_identifier_from_data(last_data)
 
-all_challenges = [first, second, third, fourth, fifth]
+def sixth(identifier: str) -> str:
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
+        packet = yap.make_yap_request(sequence=1, payload=identifier.encode())
+        sock.sendto(packet.serialize(), ("rick", 6001))
+        raw_recieve = sock.recvfrom(utils.MAX_BYTES)[0]
+        msg = yap.to_yap_packet(raw_recieve).payload.decode()
+
+        print(msg)
+        return utils.get_identifier_from_data(msg)
+
+all_challenges = [first, second, third, fourth, fifth, sixth]
