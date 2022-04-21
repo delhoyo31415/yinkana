@@ -1,8 +1,8 @@
-import functools
-
 import challenges
 
 USERNAME = ""
 
 if __name__ == "__main__":
-    functools.reduce(lambda id_, challenge: challenge(id_), challenges.all_challenges, USERNAME)
+    identifier = USERNAME
+    for challenge in challenges.all_challenges:
+        identifier = challenge(identifier)
