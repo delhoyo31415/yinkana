@@ -8,6 +8,12 @@ MAX_BYTES = 4096
 ID_PREFIX = "identifier"
 MIN_DYNAMIC_PORT, MAX_DYNAMIC_PORT = 49152, 65535
 
+def get_identifier_or_raise_exception(data: str) -> str:
+    identifier = get_identifier_from_data(data)
+    if identifier is not None:
+        return identifier
+    raise ValueError("indentifier was not found in the provided data")
+
 def decrypt_cesar_word(word: str, key: int) -> str:
     decoded_word = ""
     for char in word:
@@ -24,12 +30,26 @@ def first_digit_index(data: str) -> Optional[int]:
 
     return None
 
-def get_identifier_from_data(data: str) -> str:
+def get_identifier_from_data(data: str) -> Optional[str]:
     """ Returns the identifier. If ID_PREFIX is not in data then an exception is raised """
+    idx = data.find(ID_PREFIX)
+    if idx != -1:
+        return data[idx + len(ID_PREFIX) + 1:data.index("\n")]
+    return None
 
-    return data[data.index(ID_PREFIX) + len(ID_PREFIX) + 1:data.index("\n")]
+def read_until_end(socket: socket.socket) -> bytes:
+    all_data = b""
+    while True:
+        data = socket.recv(MAX_BYTES)
+        if not data:
+            break
 
-def read_until(socket: socket.socket, delimiter = None) -> str:
+        all_data += data
+
+    return all_data
+
+
+def read_until(socket: socket.socket, delimiter, encoding: str = "utf-8") -> str:
     """ Reads until delimiter is found. If delimiter is None (the default), it
     will read until the remote host closes the connection """
 
@@ -38,7 +58,7 @@ def read_until(socket: socket.socket, delimiter = None) -> str:
         data = socket.recv(MAX_BYTES)
         if not data:
             break
-        all_data += data.decode()
+        all_data += data.decode(encoding)
 
         if delimiter and delimiter in all_data:
             return all_data
